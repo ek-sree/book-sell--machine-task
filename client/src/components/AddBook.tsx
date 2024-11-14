@@ -2,6 +2,8 @@ import { FC, useState } from "react";
 import { IBook } from "../interface/IBook";
 import { bookAxios } from "../constraints/axios/bookAxios";
 import { bookEndpoints } from "../constraints/endpoints/booksEndpoints";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store/store";
 
 interface AddBookModalProps {
   isOpen: boolean;
@@ -17,6 +19,8 @@ const AddBook: FC<AddBookModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [titleError, setTitleError] = useState<string | null>(null);
   const [authorError, setAuthorError] = useState<string | null>(null);
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
+
+  const userId = useSelector((state:RootState)=>state.User.authdata?._id)
 
   const validateForm = () => {
     let isValid = true;
@@ -53,9 +57,11 @@ const AddBook: FC<AddBookModalProps> = ({ isOpen, onClose, onSuccess }) => {
     
     if (isValid) {
       const newBook = { title, author, description };
-      const response = await bookAxios.post(`${bookEndpoints.addBook}`,newBook)
+      const response = await bookAxios.post(`${bookEndpoints.addBook}?userId=${userId}`,newBook)
+      console.log("add data",response);
+      
       if(response.status==201){
-          onSuccess(newBook);
+          onSuccess(response.data.data);
           onClose();
         }
     }

@@ -14,7 +14,7 @@ const persistConfiguration = {
 
 // Combine reducers
 const rootReducer = combineReducers({
-  User: userSlice,  // Add the user slice here
+  User: userSlice.reducer,  // Add the user slice here
 });
 
 // Apply persisted reducer

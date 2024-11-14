@@ -1,18 +1,26 @@
+import { useEffect, useState } from "react";
 import logo from "../../public/logo/book-logo.png";
+import useDebounce from "@/hooks/useDebounce";
 
-const Navbar = () => {
+const Navbar = ({ onSearch }: { onSearch: (query: string) => void }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  useEffect(() => {
+    onSearch(debouncedSearchTerm);
+  }, [debouncedSearchTerm, onSearch]);
+
   return (
     <div className="bg-slate-800 text-white w-full py-2">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        
         <div className="flex items-center">
           <img src={logo} alt="logo" className="w-16" />
         </div>
-
         <div className="relative w-1/3">
           <input
             type="text"
-            placeholder="Search..."
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by title, author or description"
             className="w-full p-2 pl-10 rounded-full bg-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <svg

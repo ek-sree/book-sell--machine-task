@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { userAxios } from '../../constraints/axios/userAxios';
+import { userEndpoints } from '../../constraints/endpoints/userEndpoints';
+import { useDispatch } from 'react-redux';
+import { login } from '../../redux/slice/userSlice';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +12,10 @@ const Login = () => {
   });
 
   const [error, setError] = useState('');
+
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,7 +42,7 @@ const Login = () => {
     return '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
 
     const validationError = validateForm();
@@ -45,7 +53,14 @@ const Login = () => {
     }
 
     setError('');
-    console.log('Form submitted:', formData);
+    const response = await userAxios.post(userEndpoints.login, formData);
+    console.log("Data login",response.data);
+    
+    if(response.status == 200){
+      const { token, user:authdata } = response.data.data;
+          dispatch(login({ token, authdata }));
+          navigate('/');
+    }
   };
 
   return (

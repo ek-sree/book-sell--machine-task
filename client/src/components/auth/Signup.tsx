@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { userAxios } from '../../constraints/axios/userAxios';
+import { userEndpoints } from '../../constraints/endpoints/userEndpoints';
+import { toast, Toaster } from 'sonner';
+import { AxiosError } from 'axios';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +14,8 @@ const Signup = () => {
   });
 
   const [error, setError] = useState('');
+
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -24,18 +30,15 @@ const Signup = () => {
       return 'All fields are required!';
     }
     
-    // Email validation
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(formData.email)) {
       return 'Please enter a valid email address.';
     }
 
-    // Password validation (at least 8 characters)
     if (formData.password.length < 8) {
       return 'Password must be at least 8 characters long.';
     }
 
-    // Confirm Password validation
     if (formData.password !== formData.confirmPassword) {
       return 'Passwords do not match!';
     }
@@ -43,22 +46,44 @@ const Signup = () => {
     return '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validationError = validateForm();
-    
-    if (validationError) {
-      setError(validationError);
-      return;
+    try {
+      const validationError = validateForm();
+  
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+      
+      const { name, email, password } = formData; 
+      const dataToSend = { name, email, password };
+  
+      setError('');
+      const response = await userAxios.post(userEndpoints.signup, dataToSend);
+  
+      if (response.status === 200) {
+        navigate('/otp');
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (error.response && error.response.status === 401) {
+          toast.error("Email already exists"); 
+        } else {
+          console.log("Error signing up", error);
+          toast.error("An error occurred during signup. Please try again.");
+        }
+      } else {
+        toast.error('An unexpected error occurred.');
+      }
     }
-
-    setError('');
-    console.log('Form submitted:', formData);
   };
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <Toaster expand={true} position='top-center' richColors/>
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-bold text-center mb-6">Sign Up</h2>
 
